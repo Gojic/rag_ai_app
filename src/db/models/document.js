@@ -42,7 +42,10 @@ module.exports = (sequelize, DataTypes) => {
       type: Sequelize.STRING,
       allowNull: true,
       defaultValue: 'ORG_DEMO'
-    }
+    },
+    collectionId: { type: DataTypes.STRING, allowNull: true },
+    s3Key: { type: DataTypes.STRING, allowNull: false },
+    s3Url: { type: DataTypes.STRING, allowNull: true },
 
 
   }, {
