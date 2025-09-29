@@ -1,0 +1,83 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: rag_mysql
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    environment:
+      # koristi postojeće vrednosti iz .env
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+    #   MYSQL_USER: ${DB_USER}
+    #  MYSQL_PASSWORD: ${DB_PASS}
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -uroot -p$${MYSQL_ROOT_PASSWORD} --silent",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rag_api
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      # Prepiši samo ono što u kontejneru mora da bude drugačije od .env
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DIALECT: mysql
+      NODE_ENV: development
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    # Pokreni migracije pa app (pošto imaš sequelize-cli u devDependencies)
+    command: >
+      sh -c "npx sequelize-cli db:migrate && npm run start"
+    # Ako želiš hot-reload dev iskustvo, koristi varijantu ispod (vidi 'app-dev')
+    # volumes:
+    #   - ./:/app
+    #   - /app/node_modules
+
+  # **Opcionalno**: razvojni servis sa hot-reloadom (ts-node-dev)
+  # Pokreće 'npm run dev', mountuje kod i preskače build.
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rag_api_dev
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DIALECT: mysql
+      NODE_ENV: development
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    command: sh -c "npm ci && npx sequelize-cli db:migrate && npm run dev"
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    profiles: ["dev"]
+
+volumes:
+  db_data:
