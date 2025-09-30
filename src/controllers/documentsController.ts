@@ -4,21 +4,32 @@ export const uploadDocument = async (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({ message: "File is missing" });
   }
-  // Za sada hard-code ili iz headera; req.user nema po difoltu
-  const orgid = "ORG_DEMO";
+  const collectionId = Number(req.body.collectionId);
+  if (!collectionId) {
+    return res.status(400).json({ message: "collectionId is required" });
+  }
   const s3Key = (req.file as any).key;
   const s3Url = (req.file as any).location;
+  try {
+    const doc = await docs.createFromUpload({
+      orgid: (req as any).orgid,
+      collectionId,
+      filename: req.file.originalname,
+      mimeType: req.file.mimetype,
+      size: req.file.size,
+      s3Key,
+      s3Url,
+    });
+    return res
+      .status(201)
+      .json({ message: "File uploaded successfully", document: doc });
+  } catch (e: any) {
+    const msg =
+      e.message === "Collection not found for this org" ||
+      e.message === "collectionId is requred"
+        ? 400
+        : 500;
 
-  const doc = await docs.createFromUpload({
-    orgid,
-    collectionId: req.body.collectionId,
-    filename: req.file.originalname,
-    mimeType: req.file.mimetype,
-    size: req.file.size,
-    s3Key,
-    s3Url,
-  });
-  return res
-    .status(201)
-    .json({ message: "File uploaded successfully", document: doc });
+    return res.status(msg).json({ message: e.message || "Server error" });
+  }
 };

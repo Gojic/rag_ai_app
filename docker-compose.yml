@@ -71,6 +71,8 @@ services:
       DB_DIALECT: mysql
       NODE_ENV: development
       PORT: 8080
+      CHOKIDAR_USEPOLLING: "1"
+      WATCHPACK_POLLING: "true"
     ports:
       - "8080:8080"
     command: sh -c "npm ci && npx sequelize-cli db:migrate && npm run dev"

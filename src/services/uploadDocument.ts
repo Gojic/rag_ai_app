@@ -2,7 +2,7 @@ import db from "../db/models";
 
 type CreateDocInput = {
   orgid: string;
-  collectionId?: string;
+  collectionId: number;
   filename: string;
   mimeType: string;
   size: number;
@@ -11,7 +11,21 @@ type CreateDocInput = {
 };
 
 export async function createFromUpload(input: CreateDocInput) {
-  const { Document } = db as any; //
+  const { Document, Collection } = db as any;
+  if (!input.collectionId) {
+    throw new Error("collectionId is rquried");
+  }
+
+  const col = await Collection.findOne({
+    where: {
+      id: input.collectionId,
+      orgid: input.orgid,
+    },
+  });
+
+  if (!col) {
+    throw new Error("Collection not found for this org");
+  }
   const existing = await Document.findOne({
     where: {
       orgid: input.orgid,
