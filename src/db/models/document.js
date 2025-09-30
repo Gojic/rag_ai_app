@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      Document.belongsTo(models.Collection, { foreignKey: 'collectionId' })
     }
   }
   Document.init({
@@ -43,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       defaultValue: 'ORG_DEMO'
     },
-    collectionId: { type: DataTypes.STRING, allowNull: true },
+    collectionId: { type: DataTypes.INTEGER, allowNull: true },
     s3Key: { type: DataTypes.STRING, allowNull: false },
     s3Url: { type: DataTypes.STRING, allowNull: true },
 
