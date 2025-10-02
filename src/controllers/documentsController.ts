@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
-import * as docs from "../services/uploadDocument";
+import * as docs from "../services/documentHandler";
+import {
+  getPresignedUrl,
+  getObjectBuffer,
+} from "../services/s3Download.service";
 export const uploadDocument = async (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({ message: "File is missing" });
@@ -31,5 +35,25 @@ export const uploadDocument = async (req: Request, res: Response) => {
         : 500;
 
     return res.status(msg).json({ message: e.message || "Server error" });
+  }
+};
+
+export const getDocumentDownloadUrl = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const doc = await docs.getDocumentFromBase(id);
+    if (!doc) {
+      return res.status(404).json({ message: "Not found" });
+    }
+    const { buffer, contentType } = await getObjectBuffer(doc.s3Key);
+    res.setHeader("Content-Type", contentType);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${doc.title ?? "document"}"`
+    );
+    return res.status(200).send(buffer);
+  } catch (e: any) {
+    return res.status(500).json({ message: e.message || "Server error" });
   }
 };

@@ -51,3 +51,7 @@ export async function markIngestStatus(
     { where: { id: documentId } }
   );
 }
+export async function getDocumentFromBase(id: string) {
+  const { Document } = db as any;
+  return await Document.findByPk(id);
+}

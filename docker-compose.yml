@@ -37,7 +37,6 @@ services:
     env_file:
       - .env
     environment:
-      # Prepiši samo ono što u kontejneru mora da bude drugačije od .env
       DB_HOST: db
       DB_PORT: 3306
       DB_DIALECT: mysql
@@ -45,16 +44,10 @@ services:
       PORT: 8080
     ports:
       - "8080:8080"
-    # Pokreni migracije pa app (pošto imaš sequelize-cli u devDependencies)
+
     command: >
       sh -c "npx sequelize-cli db:migrate && npm run start"
-    # Ako želiš hot-reload dev iskustvo, koristi varijantu ispod (vidi 'app-dev')
-    # volumes:
-    #   - ./:/app
-    #   - /app/node_modules
 
-  # **Opcionalno**: razvojni servis sa hot-reloadom (ts-node-dev)
-  # Pokreće 'npm run dev', mountuje kod i preskače build.
   app-dev:
     build:
       context: .
