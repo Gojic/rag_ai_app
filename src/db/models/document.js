@@ -11,7 +11,9 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Document.belongsTo(models.Collection, { foreignKey: 'collectionId' })
+      Document.belongsTo(models.Collection, { foreignKey: 'collectionId' });
+      Document.hasMany(models.DocumentChunks, { foreignKey: 'documentId' });
+
     }
   }
   Document.init({

@@ -66,13 +66,30 @@ services:
       PORT: 8080
       CHOKIDAR_USEPOLLING: "1"
       WATCHPACK_POLLING: "true"
+      NODE_OPTIONS: "--max-old-space-size=2048"
     ports:
       - "8080:8080"
     command: sh -c "npm ci && npx sequelize-cli db:migrate && npm run dev"
     volumes:
       - ./:/app
-      - /app/node_modules
+      - node_deps:/app/node_modules
     profiles: ["dev"]
-
+  app-built:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: [.env]
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      NODE_ENV: development
+      NODE_OPTIONS: "--max-old-space-size=4096"
+    ports: ["8080:8080"]
+    command: sh -c "npx sequelize-cli db:migrate && npm run build && node dist/app.js"
+    profiles: ["ingest"]
 volumes:
   db_data:
+  node_deps:

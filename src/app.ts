@@ -6,6 +6,7 @@ const { sequelize } = db as any;
 import documentsRoute from "./routes/documentsRoute";
 import collectionsRoute from "./routes/collectionsRoute";
 import attachOrg from "./middleware/org";
+import ingestRoute from "./routes/ingestRoute";
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -14,6 +15,7 @@ app.get("/health", (req, res) => res.json({ ok: true }));
 app.use(attachOrg);
 app.use("/documents", documentsRoute);
 app.use("/collections", collectionsRoute);
+app.use("/ingest", ingestRoute);
 (async () => {
   try {
     await sequelize.authenticate();
