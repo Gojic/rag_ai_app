@@ -15,10 +15,11 @@ export function chunkerText(
     if (slice) {
       chunks.push({ index: idx++, text: slice });
     }
-    i = end - overlap;
+    /* i = end - overlap;
     if (i < 0) {
       i = 0;
-    }
+    }*/
+    i = Math.max(i + chunkSize - overlap, i + 1);
   }
   return chunks;
 }

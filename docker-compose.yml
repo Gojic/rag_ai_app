@@ -25,7 +25,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: rag_qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
   app:
     build:
       context: .
@@ -93,3 +99,4 @@ services:
 volumes:
   db_data:
   node_deps:
+  qdrant_data:

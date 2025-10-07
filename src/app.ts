@@ -5,8 +5,10 @@ import db from "./db/models"; // <-- .js ekstenzija
 const { sequelize } = db as any;
 import documentsRoute from "./routes/documentsRoute";
 import collectionsRoute from "./routes/collectionsRoute";
+import ragRoute from "./routes/ragRoute";
 import attachOrg from "./middleware/org";
 import ingestRoute from "./routes/ingestRoute";
+
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -16,6 +18,7 @@ app.use(attachOrg);
 app.use("/documents", documentsRoute);
 app.use("/collections", collectionsRoute);
 app.use("/ingest", ingestRoute);
+app.use("/rag", ragRoute);
 (async () => {
   try {
     await sequelize.authenticate();
