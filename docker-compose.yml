@@ -7,7 +7,6 @@ services:
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
     environment:
-      # koristi postojeće vrednosti iz .env
       MYSQL_ROOT_PASSWORD: ${DB_PASS}
       MYSQL_DATABASE: ${DB_NAME}
     #   MYSQL_USER: ${DB_USER}
@@ -73,6 +72,7 @@ services:
       CHOKIDAR_USEPOLLING: "1"
       WATCHPACK_POLLING: "true"
       NODE_OPTIONS: "--max-old-space-size=2048"
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     ports:
       - "8080:8080"
     command: sh -c "npm ci && npx sequelize-cli db:migrate && npm run dev"
