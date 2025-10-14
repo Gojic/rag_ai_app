@@ -10,6 +10,7 @@ import attachOrg from "./middleware/org";
 import ingestRoute from "./routes/ingestRoute";
 
 const app = express();
+
 app.use(express.json());
 app.use(cors());
 
@@ -19,6 +20,7 @@ app.use("/documents", documentsRoute);
 app.use("/collections", collectionsRoute);
 app.use("/ingest", ingestRoute);
 app.use("/rag", ragRoute);
+
 (async () => {
   try {
     await sequelize.authenticate();

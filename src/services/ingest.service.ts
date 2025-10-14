@@ -11,56 +11,49 @@ export async function ingestDocument(documentId: number) {
     throw new Error("Document not found");
   }
 
-  await doc.update({ status: "RUNNING" });
-
-  try {
-    if (doc.size > 15 * 1024 * 1024) {
-      throw new Error("PDF too large to process (max 15MB)");
-    }
-    const { buffer } = await getObjectBuffer(doc.s3Key);
-
-    let pieces: { index: number; text: string }[] = [];
-
-    if (doc.mimeType === "application/pdf") {
-      pieces = await parsePdfStream(buffer);
-    } else if (doc.mimeType?.startsWith("text/")) {
-      const text = buffer.toString("utf8");
-      pieces = chunkerText(text);
-    } else {
-      throw new Error(`Unsupported mimeType: ${doc.mimeType}`);
-    }
-    if (!pieces.length) {
-      throw new Error("Empty content after parse");
-    }
-    //  const pieces = chunkerText(text);
-
-    await sequelize.transaction(async (t: any) => {
-      await DocumentChunks.destroy({ where: { documentId }, transaction: t });
-      await DocumentChunks.bulkCreate(
-        pieces.map((p) => ({
-          documentId,
-          chunkIndex: p.index,
-          text: p.text,
-        })),
-        { transaction: t }
-      );
-
-      const preview = pieces
-        .slice(0, 3)
-        .map((p) => p.text)
-        .join(" ")
-        .slice(0, 2000);
-      await doc.update(
-        {
-          status: "DONE",
-          content: preview,
-        },
-        { transaction: t }
-      );
-    });
-    return { ok: true, chunks: pieces.length };
-  } catch (err: any) {
-    await doc.update({ status: "FAILED" });
-    throw err;
+  if (doc.size > 15 * 1024 * 1024) {
+    throw new Error("PDF too large to process (max 15MB)");
   }
+  const { buffer } = await getObjectBuffer(doc.s3Key);
+
+  let pieces: { index: number; text: string }[] = [];
+
+  if (doc.mimeType === "application/pdf") {
+    pieces = await parsePdfStream(buffer);
+  } else if (doc.mimeType?.startsWith("text/")) {
+    const text = buffer.toString("utf8");
+    pieces = chunkerText(text);
+  } else {
+    throw new Error(`Unsupported mimeType: ${doc.mimeType}`);
+  }
+  if (!pieces.length) {
+    throw new Error("Empty content after parse");
+  }
+  //  const pieces = chunkerText(text);
+
+  await sequelize.transaction(async (t: any) => {
+    await DocumentChunks.destroy({ where: { documentId }, transaction: t });
+    await DocumentChunks.bulkCreate(
+      pieces.map((p) => ({
+        documentId,
+        chunkIndex: p.index,
+        text: p.text,
+      })),
+      { transaction: t }
+    );
+
+    const preview = pieces
+      .slice(0, 3)
+      .map((p) => p.text)
+      .join(" ")
+      .slice(0, 2000);
+    await doc.update(
+      {
+        status: "DONE",
+        content: preview,
+      },
+      { transaction: t }
+    );
+  });
+  return { ok: true, chunks: pieces.length };
 }

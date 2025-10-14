@@ -5,6 +5,7 @@ import {
   getObjectBuffer,
 } from "../services/s3Download.service";
 export const uploadDocument = async (req: Request, res: Response) => {
+  console.log("HIT /documents/upload", req.headers, req.body);
   if (!req.file) {
     return res.status(400).json({ message: "File is missing" });
   }

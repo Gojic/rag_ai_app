@@ -7,7 +7,9 @@
     "build": "tsc",
     "dev:docker": "ts-node-dev --respawn --transpile-only --poll --ignore-watch node_modules --watch src src/app.ts",
     "start": "node dist/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "worker": "ts-node-dev --respawn --transpile-only src/worker/worker.ts",
+    "worker:doc": "ts-node src/worker/worker.ts --doc"
   },
   "keywords": [],
   "author": "",

@@ -1,6 +1,10 @@
 import db from "../db/models";
 import { qdrantClient, qdrantReady } from "../rag/qdrant.client";
 import { embedTexts } from "../rag/embedder";
+function makePointId(documentId: number, chunkIndex: number) {
+  // dovoljno veliko “radix” da ne dođe do kolizije
+  return documentId * 1_000_000 + chunkIndex; // number
+}
 export async function indexDocumentChunks(documentId: number): Promise<number> {
   const { Document, DocumentChunks } = db as any;
   const doc = await Document.findByPk(documentId);
@@ -17,7 +21,7 @@ export async function indexDocumentChunks(documentId: number): Promise<number> {
   const collection = await qdrantReady();
   const embeddings = await embedTexts(chunks.map((c: any) => c.text));
   const points = chunks.map((c: any, idx: number) => ({
-    id: `${documentId}_${c.chunkIndex}`,
+    id: makePointId(documentId, c.chunkIndex),
     vector: embeddings[idx],
     payload: {
       orgid: doc.orgid,
