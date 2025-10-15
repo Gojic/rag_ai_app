@@ -6,6 +6,7 @@ export const createCollection = async (req: Request, res: Response) => {
   try {
     const collection = await collections.createCollection({
       orgid: (req as any).orgid,
+      userId: (req as any).userId,
       name,
       description,
     });

@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       Collection.hasMany(models.Document, { foreignKey: 'collectionId' });
+      Collection.belongsTo(models.User, { foreignKey: 'userId' })
 
     }
   }

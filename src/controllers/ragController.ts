@@ -29,9 +29,7 @@ export const ragQuery = async (req: Request, res: Response) => {
     const hits = found || [];
 
     const keys = hits.map((h) => h.payload?.chunkIndex as number);
-    //const docId = hits[0]?.payload?.documentId;
 
-    console.log("docId", docId);
     const chunks = await DocumentChunks.findAll({
       where: { documentId: docId, chunkIndex: keys },
       order: [["chunkIndex", "ASC"]],

@@ -2,7 +2,6 @@ import db from "../db/models";
 import { qdrantClient, qdrantReady } from "../rag/qdrant.client";
 import { embedTexts } from "../rag/embedder";
 function makePointId(documentId: number, chunkIndex: number) {
-  // dovoljno veliko “radix” da ne dođe do kolizije
   return documentId * 1_000_000 + chunkIndex; // number
 }
 export async function indexDocumentChunks(documentId: number): Promise<number> {

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { ragQuery } from "../controllers/ragController";
+import authenticate from "../middleware/is-auth";
 const router = Router();
-console.log("rute");
-router.post("/query", ragQuery);
+
+router.post("/query", authenticate, ragQuery);
 export default router;

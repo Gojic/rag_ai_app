@@ -4,6 +4,7 @@ type CreateCollectionInput = {
   name: string;
   description?: string;
   orgid: string;
+  userId: number;
 };
 export async function createCollection(input: CreateCollectionInput) {
   const { Collection } = db as any;
@@ -11,6 +12,7 @@ export async function createCollection(input: CreateCollectionInput) {
   if (!input.orgid) {
     throw new Error("orgid is required");
   }
+  if (!input.userId) throw new Error("userId is required");
   if (!input.name) {
     throw new Error("name is required");
   }
@@ -32,7 +34,7 @@ export async function getCollection(inputOrgId: string) {
   if (!inputOrgId) {
     throw new Error("orgId must be passed");
   }
-  console.log("orgid: ", inputOrgId);
+
   return await Collection.findAll({
     where: { orgid: inputOrgId },
   });
