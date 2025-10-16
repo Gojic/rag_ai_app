@@ -1,8 +1,6 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import db from "./db/models"; // <-- .js ekstenzija
-const { sequelize } = db as any;
 import documentsRoute from "./routes/documentsRoute";
 import collectionsRoute from "./routes/collectionsRoute";
 import ragRoute from "./routes/ragRoute";
@@ -21,17 +19,4 @@ app.use("/collections", collectionsRoute);
 app.use("/ingest", ingestRoute);
 app.use("/rag", ragRoute);
 
-(async () => {
-  try {
-    await sequelize.authenticate();
-    console.log("Connection has been established successfully.");
-
-    const PORT = process.env.PORT || 8080;
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}.`);
-    });
-  } catch (error) {
-    console.error("DB connection error:", error);
-    process.exit(1);
-  }
-})();
+export default app;

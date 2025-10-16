@@ -97,7 +97,7 @@ services:
       NODE_ENV: development
       NODE_OPTIONS: "--max-old-space-size=4096"
     ports: ["8080:8080"]
-    command: sh -c "npx sequelize-cli db:migrate && npm run build && node dist/app.js"
+    command: sh -c "npx sequelize-cli db:migrate && npm run build && node dist/server.js"
     profiles: ["ingest"]
 
   worker-dev:
