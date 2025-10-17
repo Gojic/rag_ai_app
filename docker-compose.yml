@@ -15,6 +15,7 @@ services:
       - "3307:3306"
     volumes:
       - db_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
     healthcheck:
       test:
         [
