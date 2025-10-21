@@ -6,18 +6,18 @@ import { runValidators } from "../../utils/runValidators";
 import db from "../../../db/models";
 const { User } = db as any;
 
-describe("registerValidators (unit)", () => {
+describe("authValidators (unit)", () => {
   beforeEach(() => jest.spyOn(User, "findOne").mockResolvedValue(null));
 
   afterEach(() => jest.restoreAllMocks());
 
   /* SIGNUP */
 
-  test.each([
-    ["too short", "P1a", "password"],
-    ["no uppercase", "password1", "password"],
-    ["no lowercase", "PASSWORD1", "password"],
-    ["no digit", "Password!", "password"],
+  it.each<[string, string]>([
+    ["too short", "P1a"],
+    ["no uppercase", "password1"],
+    ["no lowercase", "PASSWORD1"],
+    ["no digit", "Password!"],
   ])("rejects when %s -error", async (_label, pwd) => {
     const errors = await runValidators(registerValidators, {
       email: "ok@test.com",
@@ -70,9 +70,9 @@ describe("registerValidators (unit)", () => {
     expect(errors.length).toBe(0);
   });
 
-  test.each([
-    ["too short", "u", "username"],
-    ["invalid character", "///", "username"],
+  it.each<[string, any]>([
+    ["blank", " "],
+    ["too short", "12345"],
   ])("invalid username -error", async (_label, pwd) => {
     const errors = await runValidators(registerValidators, {
       email: "ok@test.com",

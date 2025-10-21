@@ -14,7 +14,7 @@ beforeEach(async () => {
   email = `d${Date.now()}@test.com`;
 });
 
-describe("Auth Endpoints", () => {
+describe("Auth Endpoints (Integration)", () => {
   /*SIGNUP */
 
   it("should return 422 when email is invalid (smoke)", async () => {
@@ -40,7 +40,7 @@ describe("Auth Endpoints", () => {
       email: email,
       password: "Password1!",
     });
-    console.log("email:", email);
+
     expect(res.status).toBe(201);
   });
   it("409/422 when email already exists", async () => {

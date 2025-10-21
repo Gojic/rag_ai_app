@@ -12,9 +12,10 @@ Backend for a **Retrieval-Augmented Generation (RAG)** application — built wit
 - **AWS S3** (or MinIO compatible) – document storage
 - **Multer + multer-s3** – file upload directly to S3
 - **dotenv** – environment configuration
-- (Planned) **LangChain**, **Qdrant**, **OpenAI embeddings/LLM** – AI/RAG layer
-- (Planned) **Docker Compose** – local development and production deploy
-- (Planned) **Jest** – unit and integration tests
+- (Planned) **LangChain**
+- **Qdrant**, **OpenAI embeddings/LLM** – AI/RAG layer
+- **Docker Compose** – local development and production deploy
+- **Jest** – unit and integration tests
 
 ## 🗂 Project Structure
 
@@ -26,20 +27,20 @@ middleware/             # Multer/S3 upload middleware
 models/                 # Sequelize models (e.g. Document)
 migrations/             # Sequelize migrations
 routes/                 # Express routes
-services/               # business logic (planned)
-db/                     # database connection (planned
+services/               # business logic
+db/                     # database connection
 ```
 
 ## ⚡ Core Features (MVP)
 
-- **Authentication (planned):** user registration/login with JWT tokens
+- **Authentication (done):** user registration/login with JWT tokens
 - **Document upload (done):**
   - `POST /documents` accepts PDF/Text files (20 MB limit)
   - files are stored in S3, metadata (name, MIME type, size, status) stored in MySQL
-- **Document listing/details (planned):**
+- **Document listing/details (done):**
   - `GET /documents` — list with statuses
   - `GET /documents/:id` — details of a single document
-- **Ingest & AI layer (planned):**
+- **Ingest & AI layer (done):**
   - Worker to parse, chunk, embed, and insert vectors into Qdrant
   - `POST /ingest/:documentId` — start processing
   - `POST /rag/query` — semantic question answering with citations
@@ -73,20 +74,22 @@ db/                     # database connection (planned
 
 5.Start the development server:
 npm run dev
+for docker compose
+docker compose --profile dev up --build app-dev qdrant worker-dev
 
 6. For testing:
-   -Create the test database inside the MySQL container:
+   Create the test database inside the MySQL container:
    `docker compose exec db mysql -uroot -p -e "CREATE DATABASE IF NOT EXISTS rag_db_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"`
-   -Verify that the database was created:
+   Verify that the database was created:
    `docker compose exec db mysql -uroot -p -e "SHOW DATABASES;"`
-   -Run test migrations:
+   Run test migrations:
    `npx dotenv-cli -e .env.test -- sequelize-cli db:migrate --env test`
-   -Run the Jest test suite:
+   Run the Jest test suite:
    `npx dotenv-cli -e .env.test -- jest --runInBand`
 
 ## 🏗 Roadmap / Phases
 
-### Phase A – Core Backend (**current**)
+### Phase A – Core Backend (**done**)
 
 - **Node.js + TypeScript skeleton**
 - **JWT authentication**
@@ -94,7 +97,7 @@ npm run dev
 - **Docker Compose** (api + mysql + qdrant placeholder)
 - **Initial tests and README**
 
-### Phase B – AI/RAG Layer (**planned**)
+### Phase B – AI/RAG Layer (**done**)
 
 - **PDF/DOCX/MD/TXT parsing**
 - **Text chunking** (~900 tokens + overlap)
@@ -104,6 +107,8 @@ npm run dev
 
 ### Phase C – Pro (**planned**)
 
+- **Render, Railway ili AWS** Plan to deploy the RAG backend system to a live environment with an integrated Swagger / OpenAPI documentation or web interface (Swagger UI, Redoc, Postman web workspace) for real-time API testing.
+- **Swagger**
 - **Conversational RAG** (chat history & summarization)
 - **Hybrid search** (BM25 + Qdrant)
 - **RBAC, API keys**
