@@ -84,12 +84,10 @@ async function pollLoop(): Promise<void> {
         process.exit(1);
       }
       try {
-        // preuzmi dokument u RUNNING, osim ako ga već nisi preuzeo ručno
         await Document.update(
           { status: "RUNNING" },
           { where: { id, status: "PENDING" } }
         );
-        // ako nije bio PENDING, a želiš forsirati obradu, skloni uslov iz where
         await processDocument(id);
         process.exit(0);
       } catch (err: any) {
@@ -97,7 +95,6 @@ async function pollLoop(): Promise<void> {
         process.exit(1);
       }
     } else {
-      // Polling mod
       await pollLoop();
     }
   } catch (e: any) {

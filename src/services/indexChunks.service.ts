@@ -1,6 +1,7 @@
 import db from "../db/models";
 import { qdrantClient, qdrantReady } from "../rag/qdrant.client";
 import { embedTexts } from "../rag/embedder";
+import { AppError } from "../utils/AppError";
 function makePointId(documentId: number, chunkIndex: number) {
   return documentId * 1_000_000 + chunkIndex; // number
 }
@@ -8,7 +9,7 @@ export async function indexDocumentChunks(documentId: number): Promise<number> {
   const { Document, DocumentChunks } = db as any;
   const doc = await Document.findByPk(documentId);
   if (!doc) {
-    throw new Error("Document not found");
+    throw new AppError("Document not found", 404, "NOT_FOUND");
   }
   const chunks = await DocumentChunks.findAll({
     where: { documentId },

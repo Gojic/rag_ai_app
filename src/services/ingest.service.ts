@@ -2,17 +2,21 @@ import db from "../db/models";
 import { chunkerText } from "../rag/chunker";
 import { parsePdfStream } from "../rag/parsers/pdfParser";
 import { getObjectBuffer } from "./s3Download.service";
-
+import { AppError } from "../utils/AppError";
 export async function ingestDocument(documentId: number) {
   const { Document, DocumentChunks, sequelize } = db as any;
   const doc = await Document.findByPk(documentId);
 
   if (!doc) {
-    throw new Error("Document not found");
+    throw new AppError("Document not found", 404, "NOT_FOUND");
   }
 
   if (doc.size > 15 * 1024 * 1024) {
-    throw new Error("PDF too large to process (max 15MB)");
+    throw new AppError(
+      "PDF too large to process (max 15MB)",
+      401,
+      "FILE_TOO_BIG"
+    );
   }
   const { buffer } = await getObjectBuffer(doc.s3Key);
 
@@ -24,10 +28,14 @@ export async function ingestDocument(documentId: number) {
     const text = buffer.toString("utf8");
     pieces = chunkerText(text);
   } else {
-    throw new Error(`Unsupported mimeType: ${doc.mimeType}`);
+    throw new AppError(
+      `Unsupported mimeType: ${doc.mimeType}`,
+      401,
+      "FILE_UNSUPPORTED"
+    );
   }
   if (!pieces.length) {
-    throw new Error("Empty content after parse");
+    throw new AppError("Empty content after parse", 401, "FILE_UNSUPPORTED");
   }
   //  const pieces = chunkerText(text);
 

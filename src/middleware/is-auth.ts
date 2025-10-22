@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
-
+import { AppError } from "../utils/AppError";
 export interface AuthRequest extends Request {
   userId?: number;
   orgid?: string;
@@ -9,18 +9,22 @@ export interface AuthRequest extends Request {
 const authenticate = (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.get("Authorization");
   if (!authHeader) {
-    return res.status(401).json({ message: "Not authenticated (no token)." });
+    throw new AppError("Not authenticated (no token).", 401, "NO_TOKEN");
   }
 
   const parts = authHeader.split(" ");
   if (parts.length !== 2 || parts[0] !== "Bearer") {
-    return res.status(401).json({ message: "Bad Authorization header." });
+    throw new AppError("Bad Authorization header format.", 401, "BAD_HEADER");
   }
   const token = parts[1];
 
   const jwtSecret = process.env.JWT_SECRET;
   if (!jwtSecret) {
-    return res.status(500).json({ message: "JWT secret is not defined." });
+    throw new AppError(
+      "JWT secret is not defined on server.",
+      500,
+      "MISSING_SECRET"
+    );
   }
 
   try {
@@ -33,10 +37,15 @@ const authenticate = (req: AuthRequest, res: Response, next: NextFunction) => {
     req.userId = decoded.userId;
     req.orgid = decoded.orgid ?? "ORG_DEMO";
     next();
-  } catch {
-    return res
-      .status(401)
-      .json({ message: "Not authenticated (invalid token)." });
+  } catch (err: any) {
+    if (err.name === "TokenExpiredError") {
+      throw new AppError("Token has expired.", 401, "TOKEN_EXPIRED");
+    }
+    throw new AppError(
+      "Not authenticated (invalid token).",
+      401,
+      "INVALID_TOKEN"
+    );
   }
 };
 

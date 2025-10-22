@@ -1,5 +1,5 @@
 import db from "../db/models";
-
+import { AppError } from "../utils/AppError";
 type CreateCollectionInput = {
   name: string;
   description?: string;
@@ -9,17 +9,16 @@ type CreateCollectionInput = {
 export async function createCollection(input: CreateCollectionInput) {
   const { Collection } = db as any;
 
-  if (!input.orgid) {
-    throw new Error("orgid is required");
-  }
-  if (!input.userId) throw new Error("userId is required");
-  if (!input.name) {
-    throw new Error("name is required");
-  }
+  if (!input.orgid)
+    throw new AppError("orgid is required", 400, "ORG_REQUIRED");
+  if (!input.userId)
+    throw new AppError("userId is required", 400, "USER_REQUIRED");
+  if (!input.name) throw new AppError("name is required", 400, "NAME_REQUIRED");
   const existing = await Collection.findOne({
     where: {
       name: input.name,
       orgid: input.orgid,
+      userId: input.userId,
     },
   });
   if (existing) return existing;
@@ -29,13 +28,14 @@ export async function createCollection(input: CreateCollectionInput) {
   });
 }
 
-export async function getCollection(inputOrgId: string) {
+export async function getCollection(orgid: string, userId: number) {
   const { Collection } = db as any;
-  if (!inputOrgId) {
-    throw new Error("orgId must be passed");
-  }
+  if (!orgid) throw new AppError("orgid must be passed", 400, "ORG_REQUIRED");
+  if (!userId)
+    throw new AppError("userId must be passed", 400, "USER_REQUIRED");
 
-  return await Collection.findAll({
-    where: { orgid: inputOrgId },
+  return Collection.findAll({
+    where: { orgid, userId },
+    order: [["createdAt", "DESC"]],
   });
 }
