@@ -75,7 +75,7 @@ db/                     # database connection
 5.Start the development server:
 npm run dev
 for docker compose
-docker compose --profile dev up --build app-dev qdrant worker-dev
+docker compose --profile dev up --build qdrant app-dev worker-dev
 
 6. For testing:
    Create the test database inside the MySQL container:
