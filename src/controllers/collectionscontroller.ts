@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
-import * as collections from "../services/createCollection";
+import * as collections from "../services/collections.service";
 import { asyncHandler } from "../utils/asyncHandler";
 import { AppError } from "../utils/AppError";
+import { CreateCollectionInputDTO } from "../domain/documents.types";
+
 export const createCollection = asyncHandler(
   async (req: Request, res: Response) => {
-    const { name, description } = req.body;
+    const { name, description } = req.body as CreateCollectionInputDTO;
 
     const orgid = (req as any).orgid;
     const userId = (req as any).userId;
@@ -17,7 +19,7 @@ export const createCollection = asyncHandler(
       description,
     });
 
-    return res.status(201).json({ collection: collection });
+    return res.status(201).json({ collection });
   }
 );
 
@@ -25,9 +27,10 @@ export const getCollection = asyncHandler(
   async (req: Request, res: Response) => {
     const orgid = (req as any).orgid;
     const userId = (req as any).userId;
-    const col = await collections.getCollection(orgid, userId);
+
     if (!orgid || !userId)
       throw new AppError("Unauthorized", 401, "NO_ORG_OR_USER");
+    const col = await collections.getCollection(orgid, userId);
     return res.status(200).json({
       collections: col,
     });
