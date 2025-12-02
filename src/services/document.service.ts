@@ -1,16 +1,14 @@
 import db from "../db/models";
 import { AppError } from "../utils/AppError";
-type CreateDocInput = {
-  orgid: string;
-  collectionId: number;
-  filename: string;
-  mimeType: string;
-  size: number;
-  s3Key: string;
-  s3Url?: string | null;
-};
+import {
+  CreateDocInputDTO,
+  DocumentEntity,
+  DocumentDTO,
+} from "../domain/ingest.types";
 
-export async function createFromUpload(input: CreateDocInput) {
+export async function createFromUpload(
+  input: CreateDocInputDTO
+): Promise<DocumentDTO> {
   const { Document, Collection } = db as any;
 
   if (!input.collectionId)
@@ -37,15 +35,17 @@ export async function createFromUpload(input: CreateDocInput) {
   const existing = await Document.findOne({
     where: {
       orgid: input.orgid,
-      s3key: input.s3Key,
+      s3Key: input.s3Key,
     },
   });
-  if (existing) return existing;
+  if (existing) return mapDocumentToDTO(existing as DocumentEntity);
 
-  return Document.create({
+  const created = (await Document.create({
     ...input,
     status: "PENDING",
-  });
+  })) as DocumentEntity;
+
+  return mapDocumentToDTO(created);
 }
 
 /*export async function markIngestStatus(
@@ -59,10 +59,29 @@ export async function createFromUpload(input: CreateDocInput) {
     { where: { id: documentId } }
   );
 } */
-export async function getDocumentFromBase(id: string) {
+export async function getDocumentFromBase(
+  id: string
+): Promise<DocumentDTO | null> {
   const { Document } = db as any;
   if (!id) {
     throw new AppError("DocId must be passed", 400, "NO_DOC_ID");
   }
-  return await Document.findByPk(id);
+  const doc = (await Document.findByPk(id)) as DocumentEntity | null;
+  if (!doc) {
+    return null;
+  }
+  return mapDocumentToDTO(doc);
+}
+export function mapDocumentToDTO(document: DocumentEntity): DocumentDTO {
+  return {
+    id: document.id,
+    title: document.title,
+    content: document.content,
+    orgid: document.orgid,
+    mimeType: document.mimeType,
+    size: document.size ?? 0,
+    status: document.status,
+    s3Key: document.s3Key,
+    s3Url: document.s3Url ?? null,
+  };
 }

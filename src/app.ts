@@ -1,11 +1,11 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import documentsRoute from "./routes/documentsRoute";
-import collectionsRoute from "./routes/collectionsRoute";
-import ragRoute from "./routes/ragRoute";
-import ingestRoute from "./routes/ingestRoute";
-import authRoutes from "./routes/authRoutes";
+import documentsRoute from "./routes/documents.route";
+import collectionsRoute from "./routes/collections.route";
+import ragRoute from "./routes/rag.route";
+import ingestRoute from "./routes/ingest.route";
+import authRoutes from "./routes/auth.routes";
 import { errorHandler } from "./middleware/errorHandler";
 const app = express();
 

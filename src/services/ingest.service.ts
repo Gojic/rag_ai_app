@@ -3,15 +3,18 @@ import { chunkerText } from "../rag/chunker";
 import { parsePdfStream } from "../rag/parsers/pdfParser";
 import { getObjectBuffer } from "./s3Download.service";
 import { AppError } from "../utils/AppError";
-export async function ingestDocument(documentId: number) {
+import { IngestResult, DocumentInstance } from "../domain/ingest.types";
+export async function ingestDocument(
+  documentId: number
+): Promise<IngestResult> {
   const { Document, DocumentChunks, sequelize } = db as any;
-  const doc = await Document.findByPk(documentId);
+  const doc = (await Document.findByPk(documentId)) as DocumentInstance | null;
 
   if (!doc) {
     throw new AppError("Document not found", 404, "NOT_FOUND");
   }
 
-  if (doc.size > 15 * 1024 * 1024) {
+  if (doc.size && doc.size > 15 * 1024 * 1024) {
     throw new AppError(
       "PDF too large to process (max 15MB)",
       401,
@@ -63,5 +66,6 @@ export async function ingestDocument(documentId: number) {
       { transaction: t }
     );
   });
+
   return { ok: true, chunks: pieces.length };
 }

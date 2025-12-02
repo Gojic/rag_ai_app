@@ -11,6 +11,7 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
   return embedding.data.map((e) => e.embedding);
 }
 
-export async function embedQuery(query: string) {
-  return (await embedTexts([query]))[0];
+export async function embedQuery(query: string): Promise<number[]> {
+  const [vector] = await embedTexts([query]);
+  return vector;
 }

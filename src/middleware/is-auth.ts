@@ -37,16 +37,19 @@ const authenticate = (req: AuthRequest, res: Response, next: NextFunction) => {
     req.userId = decoded.userId;
     req.orgid = decoded.orgid ?? "ORG_DEMO";
     next();
-  } catch (err: any) {
-    if (err.name === "TokenExpiredError") {
-      throw new AppError("Token has expired.", 401, "TOKEN_EXPIRED");
+  } catch (err: unknown) {
+    if (typeof err === "object" && err && "name" in err) {
+      const e = err as { name: string };
+
+      if (e.name === "TokenExpiredError") {
+        throw new AppError("Token has expired.", 401, "TOKEN_EXPIRED");
+      }
+      throw new AppError(
+        "Not authenticated (invalid token).",
+        401,
+        "INVALID_TOKEN"
+      );
     }
-    throw new AppError(
-      "Not authenticated (invalid token).",
-      401,
-      "INVALID_TOKEN"
-    );
   }
 };
-
 export default authenticate;

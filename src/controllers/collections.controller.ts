@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import * as collections from "../services/collections.service";
 import { asyncHandler } from "../utils/asyncHandler";
 import { AppError } from "../utils/AppError";
-import { CreateCollectionInputDTO } from "../domain/documents.types";
+import { CreateCollectionInputDTO } from "../domain/colections.types";
 
 export const createCollection = asyncHandler(
   async (req: Request, res: Response) => {

@@ -5,8 +5,13 @@ import {
   CreateCollectionDTO,
   CollectionDTO,
   CollectionEntity,
-} from "../domain/documents.types";
-
+} from "../domain/colections.types";
+// **************************************************************
+// createCollection
+// → Servis koji kreira kolekciju ili vraća već postojeću
+// → Prima: CreateCollectionDTO (sa orgid + userId, backend vrednosti)
+// → Vraća: CollectionDTO (bezbedan objekat za frontend)
+// **************************************************************
 export async function createCollection(
   input: CreateCollectionDTO
 ): Promise<CollectionDTO> {
@@ -29,10 +34,15 @@ export async function createCollection(
   return mapCollectionToDTO(created);
 }
 
+// **************************************************************
+// getCollection
+// → Vraća sve kolekcije za zadati orgid i userId
+// → Vraća niz DTO objekata (bezbednih za frontend)
+// **************************************************************
 export async function getCollection(
   orgid: string,
   userId: number
-): Promise<CollectionDTO[]> {
+): Promise<CollectionDTO[] | null> {
   if (!orgid) throw new AppError("orgid must be passed", 400, "ORG_REQUIRED");
   if (!userId)
     throw new AppError("userId must be passed", 400, "USER_REQUIRED");
@@ -40,11 +50,17 @@ export async function getCollection(
   const rows = (await Collection.findAll({
     where: { orgid, userId },
     order: [["createdAt", "DESC"]],
-  })) as CollectionEntity[];
+  })) as CollectionEntity[] | null;
 
+  if (!rows) return [];
   return rows.map(mapCollectionToDTO);
 }
 
+// **************************************************************
+// mapCollectionToDTO
+// → Pretvara Sequelize entitet (sa userId i timestampovima)
+//   u Object koji je bezbedan za frontend
+// **************************************************************
 export function mapCollectionToDTO(
   collection: CollectionEntity
 ): CollectionDTO {

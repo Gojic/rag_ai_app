@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { ragQuery } from "../controllers/ragController";
+import { ragQuery } from "../controllers/rag.controller";
 import authenticate from "../middleware/is-auth";
 import { validate } from "../middleware/validators";
 import { ragQueryValidators } from "../validators/rag.validators";

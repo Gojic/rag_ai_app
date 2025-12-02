@@ -1,4 +1,4 @@
-import multer from "multer";
+import multer, { MulterError } from "multer";
 import multerS3 from "multer-s3";
 import { randomUUID } from "crypto";
 import { S3Client } from "@aws-sdk/client-s3";
@@ -31,7 +31,9 @@ export const upload = multer({
     if (["application/pdf", "text/plain"].includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Unsupported file type"));
+      const err = new MulterError("LIMIT_UNEXPECTED_FILE", file.fieldname);
+      err.message = "Unsupported file type";
+      cb(err);
     }
   },
 });

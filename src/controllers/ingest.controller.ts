@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as docs from "../services/documentHandler";
+import * as docs from "../services/document.service";
 import db from "../db/models";
 const { Document } = db as any;
 import { asyncHandler } from "../utils/asyncHandler";

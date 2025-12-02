@@ -1,4 +1,8 @@
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.js";
+
+type PdfTextItem = {
+  str: string;
+};
 (pdfjsLib as any).GlobalWorkerOptions.workerSrc = false;
 
 type Chunk = { index: number; text: string };
@@ -26,7 +30,7 @@ export async function parsePdfStream(
     for (let pageNum = 1; pageNum <= pdfDocument.numPages; pageNum++) {
       const page = await pdfDocument.getPage(pageNum);
       const textContent = await page.getTextContent();
-      const pageText = (textContent.items as any[])
+      const pageText = (textContent.items as PdfTextItem[])
         .map((it: any) => it.str)
         .join(" ");
 

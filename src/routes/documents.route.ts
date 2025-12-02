@@ -5,7 +5,7 @@ import { validate } from "../middleware/validators";
 import {
   uploadDocument,
   getDocumentDownloadUrl,
-} from "../controllers/documentsController";
+} from "../controllers/documents.controller";
 import { uploadDocumentValidators } from "../validators/documents.validators";
 const router = Router();
 router.post(

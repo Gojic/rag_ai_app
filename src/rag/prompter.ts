@@ -1,7 +1,8 @@
-export function buildPrompt(
-  question: string,
-  contexts: { text: string; ref: string }[]
-) {
+export type RAGContext = {
+  text: string;
+  ref: string;
+};
+export function buildPrompt(question: string, contexts: RAGContext[]) {
   const contextBlocks = contexts
     .map((c, i) => `[${i + 1}] ${c.ref}\n${c.text}`)
     .join("\n\n");

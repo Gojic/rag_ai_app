@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as docs from "../services/documentHandler";
+import * as docs from "../services/document.service";
 import { getObjectBuffer } from "../services/s3Download.service";
 import { asyncHandler } from "../utils/asyncHandler";
 import { AppError } from "../utils/AppError";
@@ -16,7 +16,7 @@ export const uploadDocument = asyncHandler(
     const doc = await docs.createFromUpload({
       orgid: (req as any).orgid,
       collectionId,
-      filename: req.file.originalname,
+      title: req.file.originalname,
       mimeType: req.file.mimetype,
       size: req.file.size,
       s3Key,
