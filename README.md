@@ -74,8 +74,8 @@ db/                     # database connection
 
 5.Start the development server:
 npm run dev
-for docker compose
-docker compose --profile dev up --build qdrant app-dev worker-dev
+for docker compose:
+`docker compose -f docker-compose.dev.yml --profile dev up --build qdrant app-dev worker-dev`
 
 6. For testing:
    Create the test database inside the MySQL container:
@@ -107,8 +107,8 @@ docker compose --profile dev up --build qdrant app-dev worker-dev
 
 ### Phase C – Pro (**planned**)
 
-- **Render, Railway ili AWS** Plan to deploy the RAG backend system to a live environment with an integrated Swagger / OpenAPI documentation or web interface (Swagger UI, Redoc, Postman web workspace) for real-time API testing.
-- **Swagger**
+- **Render, Railway ili AWS** Plan to deploy the RAG backend system to a live environment with an integrated Swagger / OpenAPI documentation or web interface (Swagger UI, Redoc, Postman web workspace) for real-time API testing. (**done**)
+- **Swagger** (**done**)
 - **Conversational RAG** (chat history & summarization)
 - **Hybrid search** (BM25 + Qdrant)
 - **RBAC, API keys**
