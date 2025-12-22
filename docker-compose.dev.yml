@@ -1,0 +1,132 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: rag_mysql
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+    #   MYSQL_USER: ${DB_USER}
+    #  MYSQL_PASSWORD: ${DB_PASS}
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -uroot -p$${MYSQL_ROOT_PASSWORD} --silent",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: rag_qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rag_api
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DIALECT: mysql
+      NODE_ENV: development
+      PORT: 8080
+    ports:
+      - "8080:8080"
+
+    command: >
+      sh -c "npx sequelize-cli db:migrate && npm run start"
+
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rag_api_dev
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DIALECT: mysql
+      NODE_ENV: development
+      PORT: 8080
+      CHOKIDAR_USEPOLLING: "1"
+      WATCHPACK_POLLING: "true"
+      NODE_OPTIONS: "--max-old-space-size=2048"
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    ports:
+      - "8080:8080"
+    command: sh -c "npm ci && npx sequelize-cli db:migrate && npm run dev"
+    volumes:
+      - ./src:/app/src
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./package.json:/app/package.json
+      - /app/node_modules
+      #- node_deps:/app/node_modules
+    profiles: ["dev"]
+  app-built:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: [.env]
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      NODE_ENV: development
+      NODE_OPTIONS: "--max-old-space-size=4096"
+    ports: ["8080:8080"]
+    command: sh -c "npx sequelize-cli db:migrate && npm run build && node dist/server.js"
+    profiles: ["ingest"]
+
+  worker-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rag_worker_dev
+    depends_on:
+      db: { condition: service_healthy }
+      qdrant: { condition: service_started }
+    env_file: [.env]
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DIALECT: mysql
+      NODE_ENV: development
+      QDRANT_URL: http://qdrant:6333
+      CHOKIDAR_USEPOLLING: "1"
+      WATCHPACK_POLLING: "true"
+    command: sh -c "npm run worker"
+    volumes:
+      - ./src:/app/src
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./package.json:/app/package.json
+      - /app/node_modules
+      # - node_deps:/app/node_modules
+    profiles: ["dev"]
+volumes:
+  db_data:
+  node_deps:
+  qdrant_data:

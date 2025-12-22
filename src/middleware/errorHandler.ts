@@ -57,6 +57,7 @@ export function errorHandler(
       .status(400)
       .json({ error: { message: err.message, code: "UPLOAD_ERROR" } });
   }
+  console.error("UNHANDLED ERROR:", err);
   const isProd = process.env.NODE_ENV === "production";
   return res.status(500).json({
     error: {

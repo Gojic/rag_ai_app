@@ -1,6 +1,7 @@
-import db from "../db/models";
+import * as models from "../db/models";
 import { CreateUserDTO, UserDTO, UserEntity } from "../domain/auth.types";
-const { User } = db as any;
+const db: any = (models as any).default || models;
+const User = db.User || db.user;
 export async function getUserbyId(id: number): Promise<UserDTO | null> {
   const user = await User.findByPk(id);
   if (!user) return null;

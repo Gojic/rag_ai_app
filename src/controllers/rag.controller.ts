@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import OpenAI from "openai";
 import db from "../db/models";
-import { qdrantClient } from "../rag/qdrant.client";
+import { qdrantClient, ensureQdrant } from "../rag/qdrant.client";
 import { embedQuery } from "../rag/embedder";
 import { buildPrompt } from "../rag/prompter";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -13,10 +13,11 @@ import {
   RAGQueryInputDTO,
   RAGSourceDTO,
 } from "../domain/ingest.types";
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 export const ragQuery = asyncHandler(async (req: Request, res: Response) => {
   const { collectionId, question, topK = 6 } = req.body as RAGQueryInputDTO;
+
   const docId = Number(req.body.docId);
   const { DocumentChunks } = db as any;
 
@@ -26,15 +27,18 @@ export const ragQuery = asyncHandler(async (req: Request, res: Response) => {
       400,
       "COLLECTIONID_REQUIRED"
     );
+
   if (!docId) throw new AppError("DocId must be passed", 400, "DOCID_REQUIRED");
   const orgid = (req as any).orgid;
   if (!orgid) throw new AppError("Unauthorized", 401, "NO_ORG");
   const vector = await embedQuery(question);
-  const raw = await qdrantClient.search("rag_chunks", {
+  const collection = await ensureQdrant();
+  const raw = await qdrantClient.search(collection, {
     vector,
     limit: Number(topK || 6),
     filter: {
       must: [
+        { key: "documentId", match: { value: docId } },
         { key: "orgid", match: { value: orgid } },
         { key: "collectionId", match: { value: collectionId } },
       ],

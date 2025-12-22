@@ -1,9 +1,28 @@
-node_modules
-dist
+# git
 .git
 .gitignore
-Dockerfile
-docker-compose.yml
-npm-debug.log
+
+# env
 .env
-.env.test
+.env.*
+
+# node
+node_modules
+dist
+build
+coverage
+
+# docker
+docker-compose*.yml
+
+# volumes
+db_data
+qdrant_data
+node_deps
+
+# ide / os
+.vscode
+.idea
+*.log
+.DS_Store
+.elasticbeanstalk/

@@ -1,5 +1,5 @@
 import db from "../db/models";
-import { qdrantClient, qdrantReady } from "../rag/qdrant.client";
+import { qdrantClient, ensureQdrant } from "../rag/qdrant.client";
 import { embedTexts } from "../rag/embedder";
 import { AppError } from "../utils/AppError";
 import {
@@ -23,7 +23,7 @@ export async function indexDocumentChunks(documentId: number): Promise<number> {
   if (!chunks.length) {
     return 0;
   }
-  const collection = await qdrantReady();
+  const collection = await ensureQdrant();
   const embeddings = await embedTexts(chunks.map((c) => c.text));
   const points: QdrantPoint[] = chunks.map((c, idx) => ({
     id: makePointId(documentId, c.chunkIndex),

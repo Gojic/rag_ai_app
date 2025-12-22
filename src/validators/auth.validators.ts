@@ -1,7 +1,8 @@
 import { body } from "express-validator";
 import db from "../db/models";
-const { User } = db as any;
-
+const anyDb = db as any;
+const sequelize = anyDb.sequelize;
+const User = sequelize.models.User;
 export const registerValidators = [
   body("email")
     .isEmail()

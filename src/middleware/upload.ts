@@ -16,7 +16,8 @@ const s3 = new S3Client({
 export const upload = multer({
   storage: multerS3({
     s3,
-    bucket: process.env.AWS_S3_BUCKET_NAME!,
+    // bucket: process.env.AWS_S3_BUCKET_NAME!,
+    bucket: "rag-documents-eu",
     contentType: multerS3.AUTO_CONTENT_TYPE,
     acl: "private",
     key: (req, file, cb) => {
