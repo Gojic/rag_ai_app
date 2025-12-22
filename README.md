@@ -5,7 +5,7 @@
 Live Swagger UI for testing the API endpoints:
 
 👉 **Swagger UI:**  
-https://rag-app-env.eba-tsxeffwp.eu-central-1.elasticbeanstalk.com/api-docs
+https://[rag-app-env.eba-tsxeffwp.eu-central-1.elasticbeanstalk.com/api-docs](http://rag-app-env.eba-tsxeffwp.eu-central-1.elasticbeanstalk.com/api/docs/#/)
 
 > The Swagger interface allows live testing of all available API routes,
 > including authentication, document upload, ingestion, and RAG queries.
