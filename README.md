@@ -1,5 +1,15 @@
 # rag_ai_app
 
+## 🔗 API Documentation (Swagger)
+
+Live Swagger UI for testing the API endpoints:
+
+👉 **Swagger UI:**  
+https://rag-app-env.eba-tsxeffwp.eu-central-1.elasticbeanstalk.com/api-docs
+
+> The Swagger interface allows live testing of all available API routes,
+> including authentication, document upload, ingestion, and RAG queries.
+
 # 📚 RAG AI App
 
 Backend for a **Retrieval-Augmented Generation (RAG)** application — built with **Node.js + TypeScript**, **MySQL/Sequelize**, and **AWS S3 (or compatible)** for file storage, with an architecture ready for an AI layer (LangChain + Qdrant + OpenAI embeddings).
