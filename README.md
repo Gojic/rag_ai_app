@@ -129,4 +129,3 @@ curl -X POST -H "Content-Type: application/json" \
 
 ##💡 Goal of the project
 To demonstrate the ability to build a production-ready RAG backend — from classic REST APIs with SQL storage and S3 file handling to an AI layer with vector search and LLM integration.
-Intended as a portfolio project for strong junior / entry-level mid backend roles.
