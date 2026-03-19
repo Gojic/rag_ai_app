@@ -11,18 +11,20 @@ const s3 = new S3Client({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
   },
+  endpoint: process.env.AWS_S3_ENDPOINT,
+  forcePathStyle: true,
 });
 
 export const upload = multer({
   storage: multerS3({
     s3,
     // bucket: process.env.AWS_S3_BUCKET_NAME!,
-    bucket: "rag-documents-eu",
+    bucket: process.env.AWS_S3_BUCKET_NAME || "rag-documents-eu",
     contentType: multerS3.AUTO_CONTENT_TYPE,
-    acl: "private",
+
     key: (req, file, cb) => {
       const uniqueName = `uploads/${randomUUID()}${path.extname(
-        file.originalname
+        file.originalname,
       )}`;
       cb(null, uniqueName);
     },
