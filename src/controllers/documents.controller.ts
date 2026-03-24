@@ -25,7 +25,7 @@ export const uploadDocument = asyncHandler(
     return res
       .status(201)
       .json({ message: "File uploaded successfully", document: doc });
-  }
+  },
 );
 
 export const getDocumentDownloadUrl = asyncHandler(
@@ -40,8 +40,18 @@ export const getDocumentDownloadUrl = asyncHandler(
     res.setHeader("Content-Type", contentType);
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${doc.title ?? "document"}"`
+      `attachment; filename="${doc.title ?? "document"}"`,
     );
     return res.status(200).send(buffer);
-  }
+  },
+);
+
+export const getDocumentsByCollection = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const doc = await docs.getDocumentsFromCollection(id);
+    return res
+      .status(200)
+      .json({ message: "File uploaded successfully", documents: doc });
+  },
 );

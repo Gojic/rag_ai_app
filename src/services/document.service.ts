@@ -7,7 +7,7 @@ import {
 } from "../domain/ingest.types";
 
 export async function createFromUpload(
-  input: CreateDocInputDTO
+  input: CreateDocInputDTO,
 ): Promise<DocumentDTO> {
   const { Document, Collection } = db as any;
 
@@ -15,7 +15,7 @@ export async function createFromUpload(
     throw new AppError(
       "CollectionId must be passed",
       400,
-      "COLLECTIONID_REQUIRED"
+      "COLLECTIONID_REQUIRED",
     );
   if (!input.orgid) throw new AppError("Unauthorized", 400, "NO_ORG");
   const col = await Collection.findOne({
@@ -29,7 +29,7 @@ export async function createFromUpload(
     throw new AppError(
       "Collection not found for this org",
       400,
-      "NO_COLLECTION"
+      "NO_COLLECTION",
     );
   }
   const existing = await Document.findOne({
@@ -60,7 +60,7 @@ export async function createFromUpload(
   );
 } */
 export async function getDocumentFromBase(
-  id: string
+  id: string,
 ): Promise<DocumentDTO | null> {
   const { Document } = db as any;
   if (!id) {
@@ -71,6 +71,22 @@ export async function getDocumentFromBase(
     return null;
   }
   return mapDocumentToDTO(doc);
+}
+
+export async function getDocumentsFromCollection(
+  id: string,
+): Promise<DocumentDTO[]> {
+  const { Document } = db as any;
+  if (!id) {
+    throw new AppError("DocId must be passed", 400, "NO_DOC_ID");
+  }
+  const documents = (await Document.findAll({
+    where: { collectionId: id },
+  })) as DocumentEntity[];
+  if (!documents || documents.length === 0) {
+    return []; // Vraćamo prazan niz ako ništa nije nađeno
+  }
+  return documents.map((doc) => mapDocumentToDTO(doc));
 }
 export function mapDocumentToDTO(document: DocumentEntity): DocumentDTO {
   return {
