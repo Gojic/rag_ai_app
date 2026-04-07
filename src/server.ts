@@ -1,9 +1,20 @@
-import app from "./app";
-import db from "./db/models";
+import "dotenv/config";
+import { createApp } from "./app";
+import db from "./db/db";
+import { DB } from "./db/db.types";
 import { ensureQdrant } from "./rag/qdrant.client";
+import { initContainer } from "./container";
 
-const { sequelize } = db as any;
+const typedDb = db as unknown as DB;
+const sequelize = typedDb.sequelize;
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  console.error("FATAL: JWT_SECRET is not defined in .env file!");
+  process.exit(1);
+}
+export const container = initContainer(db as unknown as DB, jwtSecret);
 
+const app = createApp(container);
 (async () => {
   try {
     await sequelize.authenticate();
@@ -19,9 +30,6 @@ const { sequelize } = db as any;
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server is running on port ${PORT}.`);
     });
-    /*app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}.`);
-    });*/
   } catch (error) {
     console.error("DB connection error:", error);
     process.exit(1);

@@ -2,35 +2,43 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import documentsRoute from "./routes/documents.route";
-import collectionsRoute from "./routes/collections.route";
+import { createCollectionsRouter } from "./routes/collections.route";
+import { createAuthRouter } from "./routes/auth.routes";
 import ragRoute from "./routes/rag.route";
 import ingestRoute from "./routes/ingest.route";
-import authRoutes from "./routes/auth.routes";
 import { errorHandler } from "./middleware/errorHandler";
 import { swaggerSpec, swaggerUi } from "./swagger";
-const app = express();
+import { AppContainer } from "./container";
 
-app.use(express.json());
-app.use(cors());
-const API_PREFIX = "/api";
-app.get("/health", (req, res) => res.json({ ok: true }));
+export const createApp = (container: AppContainer) => {
+  const app = express();
 
-app.use(`${API_PREFIX}/auth`, authRoutes);
-app.use(`${API_PREFIX}/documents`, documentsRoute);
-app.use(`${API_PREFIX}/collections`, collectionsRoute);
-app.use(`${API_PREFIX}/ingest`, ingestRoute);
-app.use(`${API_PREFIX}/rag`, ragRoute);
+  app.use(express.json());
+  app.use(cors());
+  const API_PREFIX = "/api";
+  app.get("/health", (req, res) => res.json({ ok: true }));
 
-app.use(
-  "/api/docs",
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, {
-    swaggerOptions: { persistAuthorization: true },
-  })
-);
+  app.use(`${API_PREFIX}/auth`, createAuthRouter(container.authController));
+  app.use(`${API_PREFIX}/documents`, documentsRoute);
+  app.use(
+    `${API_PREFIX}/collections`,
+    createCollectionsRouter(container.collectionController),
+  );
+  app.use(`${API_PREFIX}/ingest`, ingestRoute);
+  app.use(`${API_PREFIX}/rag`, ragRoute);
 
-app.use((_req, res) =>
-  res.status(404).json({ error: { message: "Not found" } })
-);
-app.use(errorHandler);
-export default app;
+  app.use(
+    "/api/docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, {
+      swaggerOptions: { persistAuthorization: true },
+    }),
+  );
+
+  app.use((_req, res) =>
+    res.status(404).json({ error: { message: "Not found" } }),
+  );
+  app.use(errorHandler);
+
+  return app;
+};
