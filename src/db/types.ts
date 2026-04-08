@@ -25,3 +25,33 @@ export class CollectionModel extends Model<
   declare description: string;
   declare orgid: string;
 }
+
+export class DocumentModel extends Model<
+  InferAttributes<DocumentModel>,
+  InferCreationAttributes<DocumentModel>
+> {
+  declare id: CreationOptional<number>;
+  declare title: string;
+  declare content: string;
+  declare status: string;
+  declare mimeType: string;
+  declare size: number;
+  declare path: string;
+  declare checksum: string;
+  declare collectionId: number;
+  declare s3Key: string;
+  declare s3Url: string;
+  declare orgid: string;
+}
+
+export class DocumentChunksModel extends Model<
+  InferAttributes<DocumentChunksModel>,
+  InferCreationAttributes<DocumentChunksModel>
+> {
+  declare id: CreationOptional<number>;
+  declare documentId: number;
+  declare chunkIndex: number;
+  declare text: string;
+  declare page: number;
+  declare heading: string;
+}

@@ -1,95 +1,22 @@
-import db from "../db/models";
 import { AppError } from "../utils/AppError";
+import { IDocumentRepository } from "../repository/document.repository";
 import {
   CreateDocInputDTO,
-  DocumentEntity,
   DocumentDTO,
+  DocumentEntity,
 } from "../domain/ingest.types";
 
-export async function createFromUpload(
-  input: CreateDocInputDTO,
-): Promise<DocumentDTO> {
-  const { Document, Collection } = db as any;
-
-  if (!input.collectionId)
-    throw new AppError(
-      "CollectionId must be passed",
-      400,
-      "COLLECTIONID_REQUIRED",
-    );
-  if (!input.orgid) throw new AppError("Unauthorized", 400, "NO_ORG");
-  const col = await Collection.findOne({
-    where: {
-      id: input.collectionId,
-      orgid: input.orgid,
-    },
-  });
-
-  if (!col) {
-    throw new AppError(
-      "Collection not found for this org",
-      400,
-      "NO_COLLECTION",
-    );
-  }
-  const existing = await Document.findOne({
-    where: {
-      orgid: input.orgid,
-      s3Key: input.s3Key,
-    },
-  });
-  if (existing) return mapDocumentToDTO(existing as DocumentEntity);
-
-  const created = (await Document.create({
-    ...input,
-    status: "PENDING",
-  })) as DocumentEntity;
-
-  return mapDocumentToDTO(created);
+export interface IDocumentService {
+  createFromUpload(input: CreateDocInputDTO): Promise<DocumentDTO>;
+  getDocumentFromBase(id: string): Promise<DocumentDTO | null>;
+  getDocumentsFromCollection(collectionId: string): Promise<DocumentDTO[]>;
+  mapToDTO(document: DocumentEntity): DocumentDTO;
 }
 
-/*export async function markIngestStatus(
-  documentId: string,
-  status: "RUNNING" | "DONE" | "FAILED",
-  error?: string
-) {
-  const { Document } = db as any;
-  return Document.update(
-    { status, ...(error ? { error } : {}) },
-    { where: { id: documentId } }
-  );
-} */
-export async function getDocumentFromBase(
-  id: string,
-): Promise<DocumentDTO | null> {
-  const { Document } = db as any;
-  if (!id) {
-    throw new AppError("DocId must be passed", 400, "NO_DOC_ID");
-  }
-  const doc = (await Document.findByPk(id)) as DocumentEntity | null;
-  if (!doc) {
-    return null;
-  }
-  return mapDocumentToDTO(doc);
-}
-
-export async function getDocumentsFromCollection(
-  id: string,
-): Promise<DocumentDTO[]> {
-  const { Document } = db as any;
-  if (!id) {
-    throw new AppError("DocId must be passed", 400, "NO_DOC_ID");
-  }
-  const documents = (await Document.findAll({
-    where: { collectionId: id },
-  })) as DocumentEntity[];
-  if (!documents || documents.length === 0) {
-    return []; // Vraćamo prazan niz ako ništa nije nađeno
-  }
-  return documents.map((doc) => mapDocumentToDTO(doc));
-}
-export function mapDocumentToDTO(document: DocumentEntity): DocumentDTO {
-  return {
+export const createDocumentService = (
+  docRepo: IDocumentRepository,
+): IDocumentService => {
+  const mapToDTO = (document: DocumentEntity): DocumentDTO => ({
     id: document.id,
     title: document.title,
     content: document.content,
@@ -99,5 +26,51 @@ export function mapDocumentToDTO(document: DocumentEntity): DocumentDTO {
     status: document.status,
     s3Key: document.s3Key,
     s3Url: document.s3Url ?? null,
+  });
+
+  return {
+    mapToDTO,
+
+    async createFromUpload(input: CreateDocInputDTO): Promise<DocumentDTO> {
+      if (!input.collectionId)
+        throw new AppError(
+          "CollectionId must be passed",
+          400,
+          "COLLECTIONID_REQUIRED",
+        );
+      if (!input.orgid) throw new AppError("Unauthorized", 400, "NO_ORG");
+
+      const col = await docRepo.findCollection(input.collectionId, input.orgid);
+      if (!col) {
+        throw new AppError(
+          "Collection not found for this org",
+          400,
+          "NO_COLLECTION",
+        );
+      }
+
+      const existing = await docRepo.findByS3Key(input.orgid, input.s3Key);
+      if (existing) return mapToDTO(existing);
+
+      const created = await docRepo.createDocument(input);
+      return mapToDTO(created);
+    },
+
+    async getDocumentFromBase(id: string): Promise<DocumentDTO | null> {
+      if (!id) throw new AppError("DocId must be passed", 400, "NO_DOC_ID");
+
+      const doc = await docRepo.findById(id);
+      return doc ? mapToDTO(doc) : null;
+    },
+
+    async getDocumentsFromCollection(
+      collectionId: string,
+    ): Promise<DocumentDTO[]> {
+      if (!collectionId)
+        throw new AppError("CollectionId must be passed", 400, "NO_COL_ID");
+
+      const documents = await docRepo.findByCollection(collectionId);
+      return documents.map(mapToDTO);
+    },
   };
-}
+};

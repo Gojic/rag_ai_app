@@ -1,9 +1,8 @@
-//SIMPLE CHUNKER FOR NOW
 import { Chunk } from "../domain/ingest.types";
 export function chunkerText(
   input: string,
   chunkSize = Number(process.env.CHUNK_SIZE ?? 900),
-  overlap = Number(process.env.CHUNK_OVERLAP ?? 150)
+  overlap = Number(process.env.CHUNK_OVERLAP ?? 150),
 ): Chunk[] {
   const chunks: Chunk[] = [];
   let i = 0;

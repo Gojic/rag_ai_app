@@ -1,11 +1,11 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import documentsRoute from "./routes/documents.route";
+import { createDocumentRouter } from "./routes/documents.route";
 import { createCollectionsRouter } from "./routes/collections.route";
 import { createAuthRouter } from "./routes/auth.routes";
-import ragRoute from "./routes/rag.route";
-import ingestRoute from "./routes/ingest.route";
+import { createRAGRouter } from "./routes/rag.route";
+import { createIngestRouter } from "./routes/ingest.route";
 import { errorHandler } from "./middleware/errorHandler";
 import { swaggerSpec, swaggerUi } from "./swagger";
 import { AppContainer } from "./container";
@@ -19,13 +19,19 @@ export const createApp = (container: AppContainer) => {
   app.get("/health", (req, res) => res.json({ ok: true }));
 
   app.use(`${API_PREFIX}/auth`, createAuthRouter(container.authController));
-  app.use(`${API_PREFIX}/documents`, documentsRoute);
+  app.use(
+    `${API_PREFIX}/documents`,
+    createDocumentRouter(container.documentController),
+  );
   app.use(
     `${API_PREFIX}/collections`,
     createCollectionsRouter(container.collectionController),
   );
-  app.use(`${API_PREFIX}/ingest`, ingestRoute);
-  app.use(`${API_PREFIX}/rag`, ragRoute);
+  app.use(
+    `${API_PREFIX}/ingest`,
+    createIngestRouter(container.ingestController),
+  );
+  app.use(`${API_PREFIX}/rag`, createRAGRouter(container.ragController));
 
   app.use(
     "/api/docs",

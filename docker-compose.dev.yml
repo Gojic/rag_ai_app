@@ -74,6 +74,7 @@ services:
       WATCHPACK_POLLING: "true"
       NODE_OPTIONS: "--max-old-space-size=2048"
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      QDRANT_URL: http://qdrant:6333
     ports:
       - "8080:8080"
     command: sh -c "npm ci && npx sequelize-cli db:migrate && npm run dev"
