@@ -4,7 +4,7 @@ import type { Request } from "express";
 export async function runValidators(
   validators: any[],
   body: any,
-  extras?: any
+  extras?: any,
 ) {
   const req: any = { body, ...extras };
 

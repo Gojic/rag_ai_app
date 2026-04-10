@@ -38,7 +38,11 @@ export const createCollectionService = (
       userId: number,
     ): Promise<CollectionDTO[]> {
       if (!orgid || !userId)
-        throw new AppError("Orgid and UserId are required", 400);
+        throw new AppError(
+          "Orgid and UserId are required",
+          400,
+          "ORG_AND_USER_REQURIED",
+        );
       const collections = await collectionRepo.getCollection(orgid, userId);
       return collections.map(mapToDTO);
     },

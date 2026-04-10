@@ -8,6 +8,8 @@
     "build": "tsc",
     "dev:docker": "ts-node-dev --respawn --transpile-only --poll --ignore-watch node_modules --watch src src/server.ts",
     "start": "node dist/server.js",
+    "db:create:test": "cross-env NODE_ENV=test npx dotenv-cli -e .env.test -- sequelize-cli db:create --env test",
+    "db:migrate:test": "cross-env NODE_ENV=test npx dotenv-cli -e .env.test -- sequelize-cli db:migrate --env test",
     "prestart": "npm run build",
     "pretest": "cross-env NODE_ENV=test DB_HOST=127.0.0.1 DB_PORT=3307 DB_DIALECT=mysql npm run db:create:test && npm run db:migrate:test",
     "test": "cross-env NODE_ENV=test jest --runInBand",

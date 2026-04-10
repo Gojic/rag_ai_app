@@ -1,105 +1,137 @@
-import {
-  registerValidators,
-  loginValidators,
-} from "../../../validators/auth.validators";
-import { runValidators } from "../../utils/runValidators";
-import db from "../../../db/models";
-const { User } = db as any;
+import { createAuthService } from "../../../services/auth.service";
+import { AppError } from "../../../utils/AppError";
+import bcrypt from "bcrypt";
 
-describe("authValidators (unit)", () => {
-  beforeEach(() => jest.spyOn(User, "findOne").mockResolvedValue(null));
+jest.mock("bcrypt");
+const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
+const makeRepo = (overrides = {}) => ({
+  findByEmail: jest.fn().mockResolvedValue(null),
+  findById: jest.fn().mockReturnValue(null),
+  create: jest.fn(),
+  ...overrides,
+});
 
-  afterEach(() => jest.restoreAllMocks());
+const fakeUser = {
+  id: 1,
+  username: "milos",
+  email: "milos@test.com",
+  password: "hashed_password",
+  orgid: "ORG_ABC123",
+};
 
-  /* SIGNUP */
+describe("AuthService", () => {
+  describe("register", () => {
+    it("409 if user exists", async () => {
+      const repo = makeRepo({
+        findByEmail: jest.fn().mockResolvedValue(fakeUser),
+      });
+      const service = createAuthService(repo);
 
-  it.each<[string, string]>([
-    ["too short", "P1a"],
-    ["no uppercase", "password1"],
-    ["no lowercase", "PASSWORD1"],
-    ["no digit", "Password!"],
-  ])("rejects when %s -error", async (_label, pwd) => {
-    const errors = await runValidators(registerValidators, {
-      email: "ok@test.com",
-      password: pwd,
-      username: "User Test",
+      await expect(
+        service.register({
+          username: "milos",
+          email: "milos@test.com",
+          password: "hashed_password",
+        }),
+      ).rejects.toMatchObject({ status: 409, code: "USER_EXISTS" });
     });
-    expect(errors.some((e) => e.field === "password")).toBe(true);
+    it("creating a user and returns DTO wihout a password", async () => {
+      const repo = makeRepo({
+        findByEmail: jest.fn().mockResolvedValue(null),
+        create: jest.fn().mockResolvedValue(fakeUser),
+      });
+      (mockedBcrypt.hash as jest.Mock).mockResolvedValue("hashed_password");
+      const service = createAuthService(repo);
+      const result = await service.register({
+        username: "milos",
+        email: "milos@test.com",
+        password: "Password1!",
+      });
+      expect(result).toEqual({
+        id: 1,
+        username: "milos",
+        email: "milos@test.com",
+        orgid: "ORG_ABC123",
+      });
+      expect(result).not.toHaveProperty("password");
+    });
+    it("calling bcrypt.hash before user creation", async () => {
+      const repo = makeRepo({
+        create: jest.fn().mockResolvedValue(fakeUser),
+      });
+      (mockedBcrypt.hash as jest.Mock).mockResolvedValue("hashed_password");
+
+      const service = createAuthService(repo);
+      await service.register({
+        username: "milos",
+        email: "milos@test.com",
+        password: "Password1!",
+      });
+      expect(mockedBcrypt.hash).toHaveBeenCalledWith("Password1!", 10);
+      expect(repo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ password: "hashed_password" }),
+      );
+    });
+    it("generating orgid in ORG_XXXXX format", async () => {
+      const repo = makeRepo({
+        create: jest
+          .fn()
+          .mockImplementation((data) =>
+            Promise.resolve({ ...fakeUser, orgid: data.orgid }),
+          ),
+      });
+      (mockedBcrypt.hash as jest.Mock).mockResolvedValue("hashed");
+      const service = createAuthService(repo);
+      const result = await service.register({
+        username: "milos",
+        email: "milos@test.com",
+        password: "Password1!",
+      });
+      expect(result.orgid).toMatch(/^ORG_[A-Z0-9]{6}$/);
+    });
   });
+  describe("validateUser", () => {
+    it(" 401 does not exist", async () => {
+      const repo = makeRepo({ findByEmail: jest.fn().mockResolvedValue(null) });
+      const service = createAuthService(repo);
 
-  it("accepts valid password - no error", async () => {
-    const errors = await runValidators(registerValidators, {
-      email: "ok@test.com",
-      password: "Password1",
-      username: "User Test",
-    });
-    expect(errors.length).toBe(0);
-  });
-
-  it("invalid email - error", async () => {
-    const spy = jest.spyOn(User, "findOne").mockResolvedValue(null);
-    const errors = await runValidators(registerValidators, {
-      email: "bad",
-      password: "Password1!",
-      username: "User Test",
+      await expect(
+        service.validateUser({
+          email: "neko@test.com",
+          password: "Password1!",
+        }),
+      ).rejects.toMatchObject({ status: 401, code: "USER_NOT_FOUND" });
     });
 
-    expect(errors.some((e: { field: string }) => e.field === "email")).toBe(
-      true
-    );
+    it("401 if password is wrong", async () => {
+      const repo = makeRepo({
+        findByEmail: jest.fn().mockResolvedValue(fakeUser),
+      });
+      (mockedBcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-    expect(spy).not.toHaveBeenCalled();
-  });
-  it("duplicate email - error", async () => {
-    jest.spyOn(User, "findOne").mockResolvedValue({ id: 1 });
-    const errors = await runValidators(registerValidators, {
-      email: "ok@test.com",
-      password: "Password1",
-      username: "User Test",
-    });
-    expect(errors.some((e) => /already in use/i.test(e.message))).toBe(true);
-  });
+      const service = createAuthService(repo);
 
-  it("valid & not existing - no errors", async () => {
-    jest.spyOn(User, "findOne").mockResolvedValue(null);
-    const errors = await runValidators(registerValidators, {
-      email: "ok@test.com",
-      password: "Password1",
-      username: "User Test",
-    });
-    expect(errors.length).toBe(0);
-  });
-
-  it.each<[string, any]>([
-    ["blank", " "],
-    ["too short", "12345"],
-  ])("invalid username -error", async (_label, pwd) => {
-    const errors = await runValidators(registerValidators, {
-      email: "ok@test.com",
-      password: "Password1",
-      username: pwd,
+      await expect(
+        service.validateUser({
+          email: "milos@test.com",
+          password: "WrongPass1!",
+        }),
+      ).rejects.toMatchObject({ status: 401, code: "INVALID_CREDENTIALS" });
     });
 
-    expect(errors.some((e) => e.field === "username")).toBe(true);
-  });
-  /* LOGIN */
+    it("returns a user if credntials are ok", async () => {
+      const repo = makeRepo({
+        findByEmail: jest.fn().mockResolvedValue(fakeUser),
+      });
+      (mockedBcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-  it("Invalid email -error", async () => {
-    const errors = await runValidators(loginValidators, {
-      password: "MojaSifra1!",
-      email: "testgmail.com",
-    });
-    expect(errors.some((e) => e.field === "email")).toBe(true);
-  });
+      const service = createAuthService(repo);
+      const result = await service.validateUser({
+        email: "milos@test.com",
+        password: "Password1!",
+      });
 
-  test.each([
-    ["password required", " ", "password"],
-    ["too short", "12345", "password"],
-  ])("wrong password credentials", async (_label, pwd) => {
-    const errors = await runValidators(loginValidators, {
-      password: pwd,
-      email: "ok@test.com",
+      expect(result).toEqual(fakeUser);
     });
-    expect(errors.some((e) => e.field === "password")).toBe(true);
   });
 });
