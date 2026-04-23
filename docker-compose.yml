@@ -1,4 +1,10 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: rag_redis
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
   app:
     image: 455896787118.dkr.ecr.eu-central-1.amazonaws.com/rag-app-api:latest
     container_name: rag_api
@@ -28,6 +34,9 @@ services:
       NODE_ENV: production
       PORT: 8080
       JWT_SECRET: ${JWT_SECRET}
+
+      REDIS_URL: ${REDIS_URL}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
     ports:
       - "80:8080"
 
@@ -63,6 +72,10 @@ services:
       PORT: 8080
       JWT_SECRET: ${JWT_SECRET}
       WORKER_POLL_MS: 5000
+
+      REDIS_URL: ${REDIS_URL}
     command: >
       sh -c "node dist/worker/worker.js"
     restart: unless-stopped
+volumes:
+  redis_data:

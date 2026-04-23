@@ -1,14 +1,16 @@
-import { Router } from "express";
+import { RequestHandler, Router } from "express";
 import upload from "../middleware/upload";
-import authenticate from "../middleware/is-auth";
+
 import { validate } from "../middleware/validators";
 import { createDocumentController } from "../controllers/documents.controller";
 import { uploadDocumentValidators } from "../validators/documents.validators";
 
 export const createDocumentRouter = (
   controller: ReturnType<typeof createDocumentController>,
+  authMiddleware: RequestHandler,
 ) => {
   const router = Router();
+
   /**
    * @openapi
    * /api/documents/upload:
@@ -54,7 +56,7 @@ export const createDocumentRouter = (
    */
   router.post(
     "/upload",
-    authenticate,
+    authMiddleware,
     upload.single("file"),
     uploadDocumentValidators,
     validate,
@@ -86,7 +88,7 @@ export const createDocumentRouter = (
    */
   router.get(
     "/:id/download-url",
-    authenticate,
+    authMiddleware,
     controller.getDocumentDownloadUrl,
   );
 
@@ -158,6 +160,6 @@ export const createDocumentRouter = (
    *       404:
    *         description: Collection not found or no documents in collection
    */
-  router.get("/:id", authenticate, controller.getDocumentsByCollection);
+  router.get("/:id", authMiddleware, controller.getDocumentsByCollection);
   return router;
 };

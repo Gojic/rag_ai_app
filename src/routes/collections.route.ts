@@ -1,11 +1,11 @@
-import { Router } from "express";
-import authenticate from "../middleware/is-auth";
+import { RequestHandler, Router } from "express";
 import { createCollectionValidators } from "../validators/collection.validators";
 import { validate } from "../middleware/validators";
 import { createCollectionController } from "../controllers/collections.controller";
 
 export const createCollectionsRouter = (
   controller: ReturnType<typeof createCollectionController>,
+  authMiddleware: RequestHandler,
 ) => {
   const router = Router();
 
@@ -43,7 +43,7 @@ export const createCollectionsRouter = (
    */
   router.post(
     "/create",
-    authenticate,
+    authMiddleware,
     createCollectionValidators,
     validate,
     controller.createCollection,
@@ -64,7 +64,7 @@ export const createCollectionsRouter = (
    *       401:
    *         description: Unauthorized
    */
-  router.get("/", authenticate, controller.getCollection);
+  router.get("/", authMiddleware, controller.getCollection);
 
   return router;
 };

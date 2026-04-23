@@ -16,13 +16,14 @@ import { createIngestController } from "./controllers/ingest.controller";
 import { createRAGRepository } from "./repository/rag.repository";
 import { createRAGService } from "./services/rag.services";
 import { createRAGController } from "./controllers/rag.controller";
-
+import { redis } from "./utils/redis";
+import { createAuthMiddleware } from "./middleware/is-auth";
 export const initContainer = (db: DB, jwtSecret: string) => {
   // 1. AUTH
   const userRepo = createUserRepository(db.User);
-  const authService = createAuthService(userRepo);
+  const authService = createAuthService(userRepo, redis);
   const authController = createAuthController(authService, jwtSecret);
-
+  const authMiddleware = createAuthMiddleware(authService);
   // 2. COLLECTION
   const collectionRepo = createCollectionRepository(db.Collection);
   const collectionService = createCollectionService(collectionRepo);
@@ -50,6 +51,7 @@ export const initContainer = (db: DB, jwtSecret: string) => {
   const ragRepo = createRAGRepository(db.DocumentChunks);
   const ragService = createRAGService(ragRepo);
   const ragController = createRAGController(ragService);
+
   return {
     authController,
     collectionController,
@@ -58,6 +60,8 @@ export const initContainer = (db: DB, jwtSecret: string) => {
     ingestController,
     indexService,
     ragController,
+    authMiddleware,
+    authService,
   };
 };
 

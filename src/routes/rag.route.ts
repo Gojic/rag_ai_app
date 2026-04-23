@@ -1,11 +1,11 @@
-import { Router } from "express";
-import authenticate from "../middleware/is-auth";
+import { RequestHandler, Router } from "express";
 import { validate } from "../middleware/validators";
 import { ragQueryValidators } from "../validators/rag.validators";
 import { createRAGController } from "../controllers/rag.controller";
 
 export const createRAGRouter = (
   controller: ReturnType<typeof createRAGController>,
+  authMiddleware: RequestHandler,
 ) => {
   const router = Router();
   /**
@@ -78,7 +78,7 @@ export const createRAGRouter = (
    */
   router.post(
     "/query",
-    authenticate,
+    authMiddleware,
     ragQueryValidators,
     validate,
     controller.query,

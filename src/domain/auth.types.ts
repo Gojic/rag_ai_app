@@ -21,6 +21,7 @@ export type LoginDTO = {
 export type JwtPayload = {
   userId: number;
   orgid: string;
+  tokenVersion: number;
 };
 export type UserEntity = {
   id: number;
@@ -28,4 +29,15 @@ export type UserEntity = {
   email: string;
   password: string;
   orgid: string;
+};
+
+export type RefreshTokenPayload = {
+  userId: number;
+  tokenVersion: number;
+  iat?: number;
+  exp?: number;
+};
+
+export type AuthUser = UserEntity & {
+  tokenVersion: number;
 };

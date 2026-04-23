@@ -1,10 +1,10 @@
-import { Router } from "express";
+import { RequestHandler, Router } from "express";
 import { createIngestController } from "../controllers/ingest.controller";
-import authenticate from "../middleware/is-auth";
 import { ingestStartValidators } from "../validators/ingest.validators";
 import { validate } from "../middleware/validators";
 export const createIngestRouter = (
   controller: ReturnType<typeof createIngestController>,
+  authMiddleware: RequestHandler,
 ) => {
   const router = Router();
   /**
@@ -36,7 +36,7 @@ export const createIngestRouter = (
 
   router.post(
     "/:documentId",
-    authenticate,
+    authMiddleware,
     ingestStartValidators,
     validate,
     controller.startIngest,
@@ -83,7 +83,7 @@ export const createIngestRouter = (
    */
   router.get(
     "/:documentId/status",
-    authenticate,
+    authMiddleware,
     ingestStartValidators,
     validate,
     controller.ingestStatus,
